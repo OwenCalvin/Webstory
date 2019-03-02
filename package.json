@@ -1,0 +1,41 @@
+{
+  "name": "webstory",
+  "version": "1.0.0",
+  "description": "Get your instagram story for your website",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node -T ./src/Main.ts"
+  },
+  "keywords": [
+    "instagram",
+    "story",
+    "web",
+    "website",
+    "api",
+    "websocket",
+    "socket.io",
+    "client",
+    "server"
+  ],
+  "author": "Owen Calvin",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.18.0",
+    "koa": "^2.7.0",
+    "koa-bodyparser": "^4.2.1",
+    "mysql": "^2.16.0",
+    "qs": "^6.6.0",
+    "rakkit": "^0.1.10",
+    "rxjs": "^6.4.0",
+    "typeorm": "^0.2.14"
+  },
+  "devDependencies": {
+    "@types/koa-bodyparser": "^4.2.2",
+    "@types/node": "^11.10.4",
+    "@types/qs": "^6.5.2",
+    "reflect-metadata": "^0.1.13",
+    "ts-node": "^8.0.2",
+    "tslib": "^1.9.3",
+    "typescript": "^3.3.3333"
+  }
+}
