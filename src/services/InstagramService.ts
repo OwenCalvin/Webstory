@@ -2,6 +2,7 @@ import Axios, { AxiosInstance } from "axios";
 import { Service, Inject } from "rakkit";
 import { InstagramRequestError } from "../errors";
 import { LoginService } from "./LoginService";
+import { Timing } from "../utils";
 
 @Service()
 export class InstagramService {
@@ -9,8 +10,8 @@ export class InstagramService {
   readonly InstagramLoginUrl = "https://www.instagram.com/accounts/login/ajax/";
   readonly BaseQueryUrl = "graphql/query/?query_hash=";
   readonly BaseUrl = "https://www.instagram.com/";
-  readonly Username = "EMAIL";
-  readonly Password = "PASSWORD";
+  readonly Username = "combienrepete";
+  readonly Password = "Kyukurama18";
   readonly AxiosInstagram: AxiosInstance;
 
   @Inject(type => LoginService)
@@ -46,6 +47,7 @@ export class InstagramService {
       if (this._tries < this._maxTries) {
         this._tries++;
         await this._loginService.invalidateSession();
+        await Timing.waitFor(5);
         return this.makeRequest(url);
       } else {
         throw new InstagramRequestError(`${this.BaseUrl}${url}`);

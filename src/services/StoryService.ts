@@ -3,8 +3,8 @@ import { UserModel } from "../models";
 import { InstagramService } from "./InstagramService";
 import { UserService } from "./UserService";
 import { IStoryResponse, StoryResponse } from "../types";
-import { Subject } from "rxjs";
 import { chunk as Chunk } from "lodash";
+import { Timing } from "../utils";
 
 @Service()
 export class StoryService {
@@ -15,7 +15,7 @@ export class StoryService {
   private _userService: UserService;
 
   private _storyQueryHash: string = "de8017ee0a7c9c45ec4260733d81ea31";
-  private _updateInterval = this.getTimeInMinutes(5);
+  private _updateInterval = Timing.getTimeInMinutes(1);
 
   constructor() {
     this.launchUpdate();
@@ -45,7 +45,7 @@ export class StoryService {
    */
   async launchUpdate() {
     setTimeout(async () => {
-      const premiumChunks = Chunk(this._userService.PremiumValues, 20);
+      const premiumChunks = Chunk(this._userService.PremiumValues, 100);
       for (const chunk of premiumChunks) {
         const stories = await this.fetch(
           chunk.filter((user) =>
@@ -58,29 +58,11 @@ export class StoryService {
             user.Socket.emit("story", story);
           }
         });
-        await this.coolDown(
+        await Timing.waitFor(
           4 + Math.floor(Math.random() * 4)
         );
       }
       this.launchUpdate();
     }, this._updateInterval);
-  }
-
-  /**
-   * Prevent the InstaAPI ban for spamming
-   * @param delay The delay to wait in seconds
-   */
-  async coolDown(delay: number) {
-    return new Promise((resolve) => {
-      setTimeout(resolve, this.getTimeInSecond(delay));
-    });
-  }
-
-  private getTimeInMinutes(minutes: number) {
-    return this.getTimeInSecond(60 * minutes);
-  }
-
-  private getTimeInSecond(second: number) {
-    return 1000 * second;
   }
 }

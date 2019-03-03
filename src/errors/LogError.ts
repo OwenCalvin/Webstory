@@ -1,4 +1,4 @@
-import { writeLog } from "../utils";
+import { Log } from "../utils";
 
 export class LogError extends Error {
   readonly message: string;
@@ -8,6 +8,6 @@ export class LogError extends Error {
     super();
     this.message = message;
     this.status = status;
-    writeLog(this.name, message);
+    Log.writeLog(this.name, message);
   }
 }

@@ -13,7 +13,7 @@ export class LoginService {
   private _instagramService: InstagramService;
 
   private _sessionId: string;
-  private _CsrfToken: string;
+  private _csrfToken: string;
   private _loggedInfos?: ILoggedInfos;
   private _loggedSubject: Subject<ILoggedInfos>;
 
@@ -35,6 +35,7 @@ export class LoginService {
   async login(): Promise<ILoggedInfos | undefined> {
     if (!this.LoggedInfos) {
       let loginResponse: AxiosResponse<ILoggedResponse>;
+      this._csrfToken = await this.getCsrfToken();
       try {
         loginResponse = await this._instagramService.AxiosInstagram.post(
         this._instagramService.InstagramLoginUrl,
@@ -45,10 +46,11 @@ export class LoginService {
         }), {
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
-            "X-CSRFToken": "."
+            "X-CSRFToken": this._csrfToken
           }
         });
       } catch (err) {
+        console.log("-- Change your account, you tried to connect too many times --");
         throw new InstagramRequestError(this._instagramService.InstagramLoginUrl);
       }
       if (loginResponse.data.authenticated) {
@@ -57,7 +59,7 @@ export class LoginService {
         this._sessionId = this.findSetCookieValue(setCookies, "sessionid").value;
         this._loggedInfos = {
           sessionId: this._sessionId,
-          csrf: this._CsrfToken,
+          csrf: this._csrfToken,
           date: new Date()
         };
         this._loggedSubject.next(this._loggedInfos);
@@ -81,13 +83,18 @@ export class LoginService {
    * Get the CSRF token into the set-cookie header
    */
   private async getCsrfToken() {
-    const insta = await this._instagramService.AxiosInstagram.get("accounts/login/?source=auth_switcher", {
-      headers: {
-        Cookie: this._instagramService.getCookie("ig_cb", "1")
-      }
-    });
-    const setCookies: string[] = insta.headers["set-cookie"];
-    return this.findSetCookieValue(setCookies, "csrf");
+    const url = "accounts/login/?source=auth_switcher";
+    try {
+      const insta = await this._instagramService.AxiosInstagram.get(url, {
+        headers: {
+          Cookie: this._instagramService.getCookie("ig_cb", "1")
+        }
+      });
+      const setCookies: string[] = insta.headers["set-cookie"];
+      return this.findSetCookieValue(setCookies, "csrf").value;
+    } catch (err) {
+      throw new InstagramRequestError(`${this._instagramService.BaseUrl}${url}`)
+    }
   }
 
   /**

@@ -3,7 +3,9 @@ import * as BodyParser from "koa-bodyparser";
 import * as Path from "path";
 import { Rakkit, MetadataStorage } from "rakkit";
 import { createConnection } from "typeorm";
-import { InstagramService, LoginService } from "./services";
+import { LoginService, UserService } from "./services";
+import { users } from "./datas/uers";
+import { Timing } from "./utils";
 
 export class Main {
   private _instance: Main;
@@ -22,7 +24,7 @@ export class Main {
     await createConnection({
       name: "default",
       username: "root",
-      password: "root",
+      password: "",
       database: "webstory",
       synchronize: true,
       type: "mysql",
@@ -43,7 +45,11 @@ export class Main {
       ]
     });
 
-    MetadataStorage.getService(LoginService).login();
+    await MetadataStorage.getService(LoginService).login();
+    // for (const user of users) {
+    //   await MetadataStorage.getService(UserService).register(user, true);
+    //   console.log(`${user} registered`);
+    // }
   }
 
   private static getGlob(pathEnd: string, cond: string) {
