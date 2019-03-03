@@ -27,15 +27,20 @@ export class StoryService {
    */
   async fetch(users: UserModel[]): Promise<StoryResponse.ReelsMedia[]> {
     if (users.length > 0) {
-      const storyResponse: IStoryResponse = (await this._instagramService.makeRequest(
-        this._instagramService.getInstagramQueryUrl(
-          this._storyQueryHash, {
-            reel_ids: users.map((user) => user.UserId),
-            precomposed_overlay: false
-          }
-        )
-      )).data;
-      return storyResponse.data.reels_media;
+      try {
+        const storyResponse: IStoryResponse = (await this._instagramService.makeRequest(
+          this._instagramService.getInstagramQueryUrl(
+            this._storyQueryHash, {
+              reel_ids: users.map((user) => user.UserId),
+              precomposed_overlay: false
+            }
+          )
+        )).data;
+        return storyResponse.data.reels_media;
+      } catch (err) {
+        await Timing.waitFor(60);
+        return await this.fetch(users);
+      }
     }
     return [];
   }

@@ -47,7 +47,7 @@ export class InstagramService {
       if (this._tries < this._maxTries) {
         this._tries++;
         await this._loginService.invalidateSession();
-        await Timing.waitFor(5);
+        await Timing.waitFor(10);
         return this.makeRequest(url);
       } else {
         throw new InstagramRequestError(`${this.BaseUrl}${url}`);
