@@ -9,7 +9,9 @@ export class StoryWs {
 
   @On("subscribe")
   private subscribe(socket: Socket, token: string) {
-    const user = this._userService.Premiums.get(token);
+    const user = this._userService.findPremium((premium) =>
+      premium.Token === token
+    );
     if (user) {
       user.Socket = socket;
       socket.emit("subscribe", "subscribed");
@@ -20,9 +22,11 @@ export class StoryWs {
 
   @On("disconnect")
   private disconnect(socket: Socket) {
-    const user = this._userService.PremiumValues.find(
-      (premium) => socket === premium.Socket
+    const user = this._userService.findPremium((premium) =>
+      premium.Socket === socket
     );
-    user.Socket = undefined;
+    if (user) {
+      user.Socket = undefined;
+    }
   }
 }

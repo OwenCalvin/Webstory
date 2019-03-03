@@ -32,8 +32,12 @@ export class UserService {
     this.loadPremiums();
   }
 
+  findPremium(compare: (value: UserModel, index: number) => boolean) {
+    return this.PremiumValues.find(compare);
+  }
+
   addPremium(user: UserModel) {
-    this._premiums.set(user.Token, user);
+    this._premiums.set(user.UserId, user);
   }
 
   removePremium(token: string) {

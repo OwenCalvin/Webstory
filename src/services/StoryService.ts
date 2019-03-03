@@ -4,6 +4,7 @@ import { InstagramService } from "./InstagramService";
 import { UserService } from "./UserService";
 import { IStoryResponse, StoryResponse } from "../types";
 import { Subject } from "rxjs";
+import { chunk as Chunk } from "lodash";
 
 @Service()
 export class StoryService {
@@ -14,18 +15,9 @@ export class StoryService {
   private _userService: UserService;
 
   private _storyQueryHash: string = "de8017ee0a7c9c45ec4260733d81ea31";
-  private _updateSubject: Subject<StoryResponse.ReelsMedia>;
   private _updateInterval = this.getTimeInMinutes(5);
 
-  /**
-   * Event is send when a story informations is fetched
-   */
-  get UpdateSubject() {
-    return this._updateSubject;
-  }
-
   constructor() {
-    this._updateSubject = new Subject();
     this.launchUpdate();
   }
 
@@ -33,16 +25,19 @@ export class StoryService {
    * Fetch the story of the user and returns all informations
    * @param userId The instagram id of the user
    */
-  async fetch(userId: string): Promise<StoryResponse.ReelsMedia> {
-    const storyResponse: IStoryResponse = (await this._instagramService.makeRequest(
-      this._instagramService.getInstagramQueryUrl(
-        this._storyQueryHash, {
-          reel_ids: [userId],
-          precomposed_overlay: false
-        }
-      )
-    )).data;
-    return storyResponse.data.reels_media[0];
+  async fetch(users: UserModel[]): Promise<StoryResponse.ReelsMedia[]> {
+    if (users.length > 0) {
+      const storyResponse: IStoryResponse = (await this._instagramService.makeRequest(
+        this._instagramService.getInstagramQueryUrl(
+          this._storyQueryHash, {
+            reel_ids: users.map((user) => user.UserId),
+            precomposed_overlay: false
+          }
+        )
+      )).data;
+      return storyResponse.data.reels_media;
+    }
+    return [];
   }
 
   /**
@@ -50,17 +45,22 @@ export class StoryService {
    */
   async launchUpdate() {
     setTimeout(async () => {
-      for (const user of this._userService.PremiumValues) {
-        if (user.Socket) {
-          const story = await this.fetch(user.UserId);
-          if (user.Socket) {
+      const premiumChunks = Chunk(this._userService.PremiumValues, 20);
+      for (const chunk of premiumChunks) {
+        const stories = await this.fetch(
+          chunk.filter((user) =>
+            user.Socket
+          )
+        );
+        stories.map((story) => {
+          const user = this._userService.Premiums.get(story.user.id);
+          if (user && user.Socket) {
             user.Socket.emit("story", story);
           }
-          this._updateSubject.next(story);
-          await this.coolDown(
-            4 + Math.floor(Math.random() * 4)
-          );
-        }
+        });
+        await this.coolDown(
+          4 + Math.floor(Math.random() * 4)
+        );
       }
       this.launchUpdate();
     }, this._updateInterval);
