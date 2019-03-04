@@ -93,7 +93,7 @@ export class LoginService {
       const setCookies: string[] = insta.headers["set-cookie"];
       return this.findSetCookieValue(setCookies, "csrf").value;
     } catch (err) {
-      throw new InstagramRequestError(`${this._instagramService.BaseUrl}${url}`)
+      throw new InstagramRequestError(`${this._instagramService.BaseUrl}${url}`);
     }
   }
 
