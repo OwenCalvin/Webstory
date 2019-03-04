@@ -1,9 +1,8 @@
 import "reflect-metadata";
 import * as BodyParser from "koa-bodyparser";
-import * as Path from "path";
-import { Rakkit, MetadataStorage } from "rakkit";
 import { createConnection } from "typeorm";
-import { LoginService, UserService } from "./services";
+import { Rakkit } from "rakkit";
+import * as Path from "path";
 import { users } from "./datas/uers";
 
 export class Main {
@@ -45,7 +44,6 @@ export class Main {
       ]
     });
 
-    await MetadataStorage.getService(LoginService).login();
     // for (const user of users) {
     //   await MetadataStorage.getService(UserService).register(user);
     //   console.log(`${user} registered`);
