@@ -4,22 +4,22 @@ import { Subject } from "rxjs";
 import { InstagramService } from "./InstagramService";
 import { AlreadyExistsError } from "../errors";
 import { IUserResponse } from "../types";
-import { UserModel } from "../models";
+import { AccountModel } from "../models";
 
 @Service()
 export class UserService {
   @Inject()
   private _instagramService: InstagramService;
 
-  private _registeredSubject: Subject<UserModel>;
-  private _premiums: Map<string, UserModel>;
+  private _registeredSubject: Subject<AccountModel>;
+  private _accounts: Map<string, AccountModel>;
 
-  get Premiums(): ReadonlyMap<string, UserModel> {
-    return this._premiums;
+  get Accounts(): ReadonlyMap<string, AccountModel> {
+    return this._accounts;
   }
 
-  get PremiumValues(): ReadonlyArray<UserModel> {
-    return Array.from(this.Premiums.values());
+  get AccountsValues(): ReadonlyArray<AccountModel> {
+    return Array.from(this._accounts.values());
   }
 
   get RegisteredSubject() {
@@ -28,34 +28,31 @@ export class UserService {
 
   constructor() {
     this._registeredSubject = new Subject();
-    this._premiums = new Map();
-    this.loadPremiums();
+    this._accounts = new Map();
+    this.loadAccounts();
   }
 
-  findPremium(compare: (value: UserModel, index: number) => boolean) {
-    return this.PremiumValues.find(compare);
+  findAccount(compare: (value: AccountModel, index: number) => boolean) {
+    return this.AccountsValues.find(compare);
   }
 
-  addPremium(user: UserModel) {
-    this._premiums.set(user.UserId, user);
+  addAccount(account: AccountModel) {
+    this._accounts.set(account.UserId, account);
   }
 
-  removePremium(token: string) {
-    this._premiums.delete(token);
+  removeAccount(userdId: string) {
+    this._accounts.delete(userdId);
   }
 
-  async register(username: string, premium?: boolean): Promise<UserModel> {
+  async register(username: string): Promise<AccountModel> {
     const userInfos: IUserResponse = await this.getInfos(username);
     if (userInfos) {
       const id = userInfos.graphql.user.id;
-      const user = new UserModel(id, premium);
+      const account = new AccountModel(id);
       try {
-        await user.save();
-        this._registeredSubject.next(user);
-        if (user.Premium) {
-          this.addPremium(user);
-        }
-        return user;
+        await account.save();
+        this._registeredSubject.next(account);
+        return account;
       } catch (err) {
         throw new AlreadyExistsError(username, id);
       }
@@ -67,12 +64,12 @@ export class UserService {
     return (await this._instagramService.makeRequest(userInfosEnpoint)).data;
   }
 
-  private async loadPremiums() {
-    const premiums = await UserModel.find({
+  private async loadAccounts() {
+    const accounts = await AccountModel.find({
       where: {
         _token: Not(IsNull())
       }
     });
-    premiums.map(this.addPremium.bind(this));
+    accounts.map(this.addAccount.bind(this));
   }
 }

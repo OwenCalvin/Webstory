@@ -7,25 +7,30 @@ export class StoryWs {
   private _userService: UserService;
 
   @On("subscribe")
-  private subscribe(socket: Socket, token: string) {
-    const user = this._userService.findPremium((premium) =>
-      premium.Token === token
-    );
-    if (user) {
-      user.Socket = socket;
-      socket.emit("subscribe", "subscribed");
-    } else {
-      socket.emit("subscribe", "user not found");
-    }
+  private subscribe(socket: Socket, userIds: string[] | string) {
+    const userIdsArr: string[] = Array.isArray(userIds) ? userIds : [ userIds ];
+    const subscriptions = this._userService.AccountsValues.reduce<string[]>((prev, account) => {
+      if (userIdsArr.includes(account.UserId)) {
+        if (!account.Sockets.includes(socket)) {
+          account.Sockets.push(socket);
+        }
+        return [
+          ...prev,
+          account.UserId
+        ];
+      }
+      return prev;
+    }, []);
+    socket.emit("subscribe", subscriptions);
   }
 
   @On("disconnect")
   private disconnect(socket: Socket) {
-    const user = this._userService.findPremium((premium) =>
-      premium.Socket === socket
-    );
-    if (user) {
-      user.Socket = undefined;
-    }
+    this._userService.AccountsValues.map((account) => {
+      const index = account.Sockets.indexOf(socket);
+      if (index > -1) {
+        account.Sockets.splice(index, 1);
+      }
+    });
   }
 }

@@ -5,7 +5,6 @@ import { Rakkit, MetadataStorage } from "rakkit";
 import { createConnection } from "typeorm";
 import { LoginService, UserService } from "./services";
 import { users } from "./datas/uers";
-import { Timing } from "./utils";
 
 export class Main {
   private _instance: Main;
@@ -37,6 +36,7 @@ export class Main {
       globalRestMiddlewares: [
         BodyParser()
       ],
+      port: 4001,
       routers: [
         this.getGlob("routers", "Router")
       ],
@@ -47,7 +47,7 @@ export class Main {
 
     await MetadataStorage.getService(LoginService).login();
     // for (const user of users) {
-    //   await MetadataStorage.getService(UserService).register(user, true);
+    //   await MetadataStorage.getService(UserService).register(user);
     //   console.log(`${user} registered`);
     // }
   }

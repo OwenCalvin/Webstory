@@ -1,5 +1,5 @@
 import { Service, Inject } from "rakkit";
-import { UserModel } from "../models";
+import { AccountModel } from "../models";
 import { InstagramService } from "./InstagramService";
 import { UserService } from "./UserService";
 import { IStoryResponse, StoryResponse } from "../types";
@@ -15,7 +15,7 @@ export class StoryService {
   private _userService: UserService;
 
   private _storyQueryHash: string = "de8017ee0a7c9c45ec4260733d81ea31";
-  private _updateInterval = Timing.getTimeInMinutes(1);
+  private _updateInterval = Timing.getTimeInSecond(10);
 
   constructor() {
     this.launchUpdate();
@@ -25,7 +25,7 @@ export class StoryService {
    * Fetch the story of the user and returns all informations
    * @param userId The instagram id of the user
    */
-  async fetch(users: UserModel[]): Promise<StoryResponse.ReelsMedia[]> {
+  async fetch(users: AccountModel[]): Promise<StoryResponse.ReelsMedia[]> {
     if (users.length > 0) {
       try {
         const storyResponse: IStoryResponse = (await this._instagramService.makeRequest(
@@ -50,22 +50,31 @@ export class StoryService {
    */
   async launchUpdate() {
     setTimeout(async () => {
-      const premiumChunks = Chunk(this._userService.PremiumValues, 100);
+      const premiumChunks = Chunk(this._userService.AccountsValues, 100);
       for (const chunk of premiumChunks) {
+        console.log("USERIDS", chunk.map(account => account.UserId));
+        console.log(chunk.filter((user) =>
+          user.Sockets.length > 0
+        ));
         const stories = await this.fetch(
-          chunk.filter((user) =>
-            user.Socket
+          chunk.filter((account) =>
+            account.Sockets.length > 0
           )
         );
-        stories.map((story) => {
-          const user = this._userService.Premiums.get(story.user.id);
-          if (user && user.Socket) {
-            user.Socket.emit("story", story);
+        const storiesIds = stories.map((story) => {
+          const user = this._userService.Accounts.get(story.user.id);
+          if (user) {
+            user.Sockets.map((socket) =>
+              socket.emit("story", story)
+            );
           }
+          return story.user.id;
         });
+        console.log("STORIES", storiesIds);
         await Timing.waitFor(
           4 + Math.floor(Math.random() * 4)
         );
+        console.log(".......................................................");
       }
       this.launchUpdate();
     }, this._updateInterval);
