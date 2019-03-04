@@ -1,6 +1,5 @@
 import { Websocket, Inject, On, Socket } from "rakkit";
 import { UserService } from "../services";
-import { disconnect } from "cluster";
 
 @Websocket()
 export class StoryWs {

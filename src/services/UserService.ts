@@ -46,17 +46,19 @@ export class UserService {
 
   async register(username: string, premium?: boolean): Promise<UserModel> {
     const userInfos: IUserResponse = await this.getInfos(username);
-    const id = userInfos.graphql.user.id;
-    const user = new UserModel(id, premium);
-    try {
-      await user.save();
-      this._registeredSubject.next(user);
-      if (user.Premium) {
-        this.addPremium(user);
+    if (userInfos) {
+      const id = userInfos.graphql.user.id;
+      const user = new UserModel(id, premium);
+      try {
+        await user.save();
+        this._registeredSubject.next(user);
+        if (user.Premium) {
+          this.addPremium(user);
+        }
+        return user;
+      } catch (err) {
+        throw new AlreadyExistsError(username, id);
       }
-      return user;
-    } catch (err) {
-      throw new AlreadyExistsError(username, id);
     }
   }
 
