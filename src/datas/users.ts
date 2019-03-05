@@ -52,4 +52,4 @@ export const users = [
     "sachabaroncohen", "studiomucci", "phillip.kremer", "chrisuphues", "phantogram", "craziesandweirdos",
     "thelittleavocadoshop", "theartofshade_", "themuseumofmodernart", "itisartime", "sopopomo", "alexisknox",
     "mothcredo_design", "cliopeppiatt", "babyanmals", "hoodass"
-]
+];

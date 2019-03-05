@@ -11,7 +11,7 @@ export class InstagramService {
   readonly BaseQueryUrl = "graphql/query/?query_hash=";
   readonly BaseUrl = "https://www.instagram.com/";
   readonly Username = "combienrepete";
-  readonly Password = "Kyukurama18";
+  readonly Password = "InstaStory00+";
   readonly AxiosInstagram: AxiosInstance;
 
   @Inject(type => LoginService)

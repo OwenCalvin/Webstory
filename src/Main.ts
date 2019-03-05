@@ -1,9 +1,10 @@
 import "reflect-metadata";
 import * as BodyParser from "koa-bodyparser";
 import { createConnection } from "typeorm";
-import { Rakkit } from "rakkit";
+import { Rakkit, MetadataStorage } from "rakkit";
 import * as Path from "path";
-import { users } from "./datas/uers";
+import { users } from "./datas/users";
+import { UserService } from "./services";
 
 export class Main {
   private _instance: Main;
@@ -44,10 +45,10 @@ export class Main {
       ]
     });
 
-    // for (const user of users) {
-    //   await MetadataStorage.getService(UserService).register(user);
-    //   console.log(`${user} registered`);
-    // }
+    for (const user of users) {
+      await MetadataStorage.getService(UserService).register(user);
+      console.log(`${user} registered`);
+    }
   }
 
   private static getGlob(pathEnd: string, cond: string) {
