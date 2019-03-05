@@ -51,6 +51,7 @@ export class UserService {
       const account = new AccountModel(id);
       try {
         await account.save();
+        this.addAccount(account);
         this._registeredSubject.next(account);
         return account;
       } catch (err) {
